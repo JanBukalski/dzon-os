@@ -1,0 +1,46 @@
+name: Build Dzon-OS
+on:
+  push:
+    paths-ignore: # Nie buduj, jeśli zmieniasz tylko dokumentację
+      - "**.md"
+  workflow_dispatch: # Pozwala odpalić budowanie ręcznie z zakładki Actions
+
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  bluebuild:
+    name: Build Custom Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe:
+          - recipes/recipe.yml
+
+    steps:
+      # Budowanie obrazu systemowego
+      - name: Build Custom Image
+        uses: blue-build/github-action@v1
+        with:
+          recipe: ${{ matrix.recipe }}
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          registry_token: ${{ github.token }}
+          pr_event_number: ${{ github.event.number }}
+
+      # Generowanie ISO (tylko dla głównej gałęzi)
+      - name: Build ISO
+        uses: blue-build/apps/generate-iso@v1
+        if: github.event_name != 'pull_request'
+        with:
+          # Nazwa obrazu musi być taka sama jak w recipe.yml
+          image_name: dzon-os 
+          installer_repo: fedora
+          installer_major_version: 43
+          portal_token: ${{ github.token }}
+          # To sprawi, że ISO pojawi się w zakładce Artifacts
+          upload_iso: true
