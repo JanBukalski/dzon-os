@@ -44,7 +44,6 @@ modules:
 
   - type: script
     scripts:
-      - setnix.sh
       - installtoolbox.sh
 
   - type: signing
