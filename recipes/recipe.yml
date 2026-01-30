@@ -11,6 +11,10 @@ modules:
       - source: system
         destination: /
 
+
+  - name: Build Container Installer
+    uses: JasonN3/build-container-installer@v1.4.0
+
   - type: dnf
     repos:
       - https://dl.google.com/linux/chrome/rpm/stable/x86_64
